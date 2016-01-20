@@ -1,0 +1,77 @@
+#Enigma M3, as used by kriegsmarine
+#Same as Enigma I, except that enigma I only have wheels I-V
+#Info from http://www.cryptomuseum.com
+
+ciphermachine "Enigma M3"
+
+alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#5 slots:
+#1:     The nonrotating reflector
+#2,3,4: The 3 ordinary wheel slots
+#5:     The plugboard
+wheelslots 5
+stepping notches
+
+#The plugboard. No wheel rotation, but user-rewireable
+slot 5
+	nonrotating
+	plugboard
+
+#The fast slot, its wheel turns on every keypress:
+slot 4 
+	fast
+	notch push 3	
+
+#A slot that pushes its own wheel too, gets the well-known enigma double-stepping:
+slot 3
+	notch push 2 3
+
+slot 1 
+	nonrotating
+
+for slots 2 - 4
+
+wheel VIII
+	wiring "FKQHTLXOCBJSPDZRAMEWNIUYGV"
+	notches "ZM"
+
+wheel VII
+	wiring "NZJHGRCXMYSWBOUFAIVLPEKQDT"
+	notches "ZM"
+
+wheel VI
+	wiring "JPGVOUMFYQBENHZRDKASXLICTW"
+	notches "ZM"
+
+wheel V
+	wiring "VZBRGITYUPSDNHLXAWMJQOFECK"
+	notch "Z"
+
+wheel IV
+	wiring "ESOVPZJAYQUIRHXLNFTGKDCMWB"
+	notch "J"
+
+wheel III
+	wiring "BDFHJLCPRTXVZNYEIWGAKMUSQO"
+	notch "V"
+
+wheel II
+	wiring "AJDKSIRUXBLHWTMCQGZNPYFVOE"
+	notch "E"
+
+wheel I 
+	wiring "EKMFLGDQVZNTOWYHXUSPAIBRCJ"
+	notch "Q"
+
+
+for slot 1
+
+#Used a little
+reflector UKW-C
+	wiring "FVPJIAOYEDRZXWGCTKUQSBNMHL"
+
+#Used for most of the WWII
+reflector UKW-B
+	wiring "YRUHQSLDPXNGOKMIEBFZCWVJAT"
+

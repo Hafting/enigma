@@ -1,0 +1,52 @@
+#Enigma G-312, used by abwehr
+#Info from http://www.cryptomuseum.com
+
+ciphermachine "Zählwerk Enigma G-312"
+
+alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#5 slots:
+#1:     The rotating reflector
+#2,3,4: The 3 ordinary wheel slots
+#5:     eintrittswalse - fixed mapping
+wheelslots 5
+stepping notches
+
+slot 5
+	nonrotating
+	
+
+#The fast slot, its wheel turns on every keypress:
+slot 4 
+	fast
+	notch push 3	
+
+slot 3
+	notch push 2
+
+slot 2
+	notch push 1 
+
+for slots 2 - 4
+
+wheel III
+	wiring "UQNTLSZFMREHDPXKIBVYGJCWOA"
+	notches "UWXAEFHKMNR"
+
+wheel II
+	wiring "HQZGPJTMOBLNCIFDYAWVEUSRKX"
+	notches "STVYZACDFGHKMNQ"
+
+wheel I 
+	wiring "DMTWSILRUYQNKFEJCAZBPGXOHV"
+	notches "SUVWZABCEFGIKLOPQ"
+
+for slot 1
+
+reflector UKW
+	wiring "RULQMZJSYGOCETKWDAHNBXPVIF"
+
+#The input mapping
+for slot 5
+wheel ETW
+	wiring "QWERTZUIOASDFGHJKPYXCVBNML"

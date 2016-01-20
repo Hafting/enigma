@@ -1,0 +1,98 @@
+#Enigma M4, as used by uboot
+#Info from http://www.cryptomuseum.com
+#
+
+ciphermachine "Enigma M4"
+
+alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#6 slots:
+#1:     The nonrotating reflector
+#2:     The thin slot where the greek wheels fit
+#3,4,5: The 3 ordinary wheel slots
+#6:     The plugboard
+wheelslots 6
+stepping notches
+
+#The plugboard. No wheel rotation, but user-rewireable
+slot 6
+	nonrotating
+	plugboard
+
+#The fast slot, its wheel turns on every keypress:
+slot 5 
+	fast
+	notch push 4	
+
+#A slot that pushes its own wheel too, gets the well-known enigma double-stepping:
+slot 4
+	notch push 3 4
+
+#The reflector
+slot 1 
+	nonrotating
+
+for slots 3 4 5
+
+#Wheels I-VIII fits in the 3 rightmost slots (3,4,5)
+wheel V
+	wiring "VZBRGITYUPSDNHLXAWMJQOFECK"
+	notch "Z"
+
+wheel IV
+	wiring "ESOVPZJAYQUIRHXLNFTGKDCMWB"
+	notch "J"
+
+wheel III
+	wiring "BDFHJLCPRTXVZNYEIWGAKMUSQO"
+	notch "V"
+
+wheel II
+	wiring "AJDKSIRUXBLHWTMCQGZNPYFVOE"
+	notch "E"
+
+wheel I 
+	wiring "EKMFLGDQVZNTOWYHXUSPAIBRCJ"
+	notch "Q"
+
+for slot 2
+
+#wheels β and γ fits only in the second slot, next to the reflector. This because they are slimmer than other wheels 
+wheel γ
+	wiring "FSOKANUERHMBTIYCWLQPZXVGJD"
+
+wheel β
+  wiring "LEYJVCNIXWPBQMDRTAKZGFUHOS"
+
+for slots 3 - 5
+
+wheel VIII
+	wiring "FKQHTLXOCBJSPDZRAMEWNIUYGV"
+	notches "ZM"
+
+wheel VII
+	wiring "NZJHGRCXMYSWBOUFAIVLPEKQDT"
+	notches "ZM"
+
+wheel VI
+	wiring "JPGVOUMFYQBENHZRDKASXLICTW"
+	notches "ZM"
+
+for slot 1
+
+#Used towards the end of WWII
+reflector UKW-C
+	wiring "RDOBJNTKVEHMLFCWZAXGYIPSUQ"
+
+#Used most of the time
+reflector UKW-B
+	wiring "ENKQAUYWJICOPBLMDXZVFTHRGS"
+
+
+#The M4 enigma is compatible with the M3 enigma in two cases:
+#Use UKW-B and wheel β in the "A" position, the rest of the machine is then compatible with M3 using its UKW-B
+#Use UKW-C and wheel γ in the "A" position, the rest of the machine is then compatible with M3 using its UKW-C
+
+
+
+

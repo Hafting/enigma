@@ -1,0 +1,135 @@
+#Czechslovakia (6K) fialka
+#See http://www.cryptomuseum.com/crypto/fialka for details, especially
+#http://www.cryptomuseum.com/crypto/fialka/wiring.htm and
+#http://www.cryptomuseum.com/crypto/fialka/wheels.htm
+
+ciphermachine "Fialka m125"
+
+alphabet «АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЬЮЯЙ»
+#The slot setup
+#(1)     1 reflector
+#(2-11) 10 rotating code wheels in a scrambler unit
+#(12)    1 etw (fixed mapping between car reader and scrambler), non-rotating
+#(13)    1 card reader, (user settable nonrotating mapping) 
+#(14)    1 fixed mapping between keyboard and card reader, non-rotating
+
+wheelslots 14
+stepping pins
+
+slot 1
+	nonrotating
+
+slot 13
+	nonrotating rewirable
+
+slot 12
+	nonrotating
+
+slot 14 
+	nonrotating
+
+#wheel 2 in fialka docs, but my slot 1 is the reflector slot.
+slot 3
+  fast reverse
+  pins offset 17  
+	pin blocks 5 7 9 11
+
+slot 5
+	reverse
+	pin blocks 7 9 11
+
+slot 7 
+	reverse
+	pin blocks 9 11
+  pins offset 17  
+
+slot 9
+	reverse
+	pin blocks 11
+  pins offset 17  
+
+#slot 9 in fialka docs
+slot 10
+	fast
+	pin blocks 8 6 4 2
+	pins offset 20
+
+slot 8
+	pin blocks 6 4 2
+	pins offset 20
+
+slot 6
+	pin blocks 4 2
+	pins offset 20
+
+slot 4
+	pin blocks 2
+	pins offset 20
+
+#The wheels and mappings
+
+#Reflector mapping
+for slot 1
+
+#The "magic circuit" is easily simulated. Separate enciphering- and
+#deciphering mappings take care of the three special pins.
+#The special pin13 that enciphers a character as itself is also easy.
+#Unlike real electronics, the simulator can reflect back along the same path
+reflector ukw
+	encipher «ЧЕФЮОБМСЦЛКЖНДЯТЗШЬВЩИАРХЙУГПЫ»
+	decipher «ЧЕФЮОБМСЦЛКЖНДЯШЗРЬВЩИАТХЙУГПЫ»
+
+#etw mapping
+for slot 12
+wheel etw
+	wiring 28 14 20 24 2 16 1 10 21 11 17 13 19 30 5 6 8 15 23 25 27 18 3 29 26 12 22 7 9 4
+
+
+#mapping between keyboard and card reader
+for slot 14
+wheel kbd
+	wiring «СЩЙОЫХЕУАПЯФГЮШБЦЧТМЖДЬЗКИРНЛВ»
+
+
+#The interchangeable rotating wheels
+#for slots 2 - 11
+for slots 2 - 11
+#                  1                   2                   3
+#1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+#А Б В Г Д Е Ж З И К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ Ы Ь Ю Я Й
+
+#The 6К Czech set of wheels 
+wheel А
+	wiring 13 22 8 18 20 12 28 4 15 27 3 5 16 14 23 26 1 25 17 11 30 10 24 7 6 21 29 2 9 19
+	pins 1 2 3 5 7 11 13 14 16 17 19 20 22 - 25 27 29 30
+wheel Б
+	wiring 20 8 5 15 4 28 21 1 24 13 29 12 14 23 25 7 9 30 27 3 11 18 17 19 22 10 2 26 6 16
+	pins 6 8 13 16 18 20 22 24 25 27 29
+wheel В
+	wiring 29 11 4 22 24 16 18 2 23 3 17 8 20 5 28 12 15 26 30 7 21 19 13 10 27 25 9 1 14 6
+	pins 4 8 12 18 21 27 29
+wheel Г
+	wiring 4 12 19 29 24 23 7 30 15 1 20 14 18 2 16 27 10 25 17 28 6 21 11 8 22 5 9 3 26 13
+	pins 1 3 6 7 8 10 - 14 18 - 21 23 25 26 27 29
+wheel Д
+	wiring 18 2 15 7 20 28 8 13 23 12 19 27 4 24 10 14 11 6 30 3 17 26 22 1 29 25 16 21 5 9
+	pins 10 13 18 22 24 29 30
+wheel Е
+	wiring 16 4 14 24 23 19 30 3 1 8 27 13 9 5 29 10 15 26 22 7 25 17 20 11 2 6 21 28 18 12
+	pins 3 6 7 8 12 13 14 18 - 22 24 25 26 28 30
+wheel Ж
+	wiring 26 23 7 5 13 8 24 30 29 20 22 9 12 10 25 16 3 21 19 18 4 1 28 27 6 2 15 17 11 14
+	pins 1 2 3 7 8 9 15 16 17 19 21 - 26 29
+wheel З
+	wiring 16 22 14 30 24 15 17 20 4 7 27 12 6 13 25 21 1 5 26 8 11 23 29 28 3 18 10 19 2 9
+	pins 2 3 7 8 20 24 26 - 30
+wheel И
+	wiring 12 1 17 29 6 4 7 11 15 3 21 25 9 26 30 13 22 20 10 24 27 14 28 23 2 5 19 18 16 8
+	pins 2 5 6 11 18 22 25
+wheel К
+	wiring «ИХЗРЩДФЦГЬОУАПЙБКСЖШМТЯВЧЕНЮЫЛ»
+	pins «АБВДЕЗИКМНОПРТУФЦЧШЫЬЯЙ»
+
+
+
+

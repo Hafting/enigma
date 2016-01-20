@@ -1,0 +1,11 @@
+#Monoalphabetic substitution, no scrambling
+#Equivalent to a simple paper code wheel 
+
+ciphermachine 'Paper code wheel'
+
+alphabet «ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ»
+wheelslots 1
+
+wheel I 
+	wiring "QWERTYUIOPASDFGHJKLZXCVBNMÅÆØ"
+

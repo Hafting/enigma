@@ -1,0 +1,38 @@
+10 wheels. Early sets have no ring settings, so only wheel order and normal wheel turning
+PROTON2 sets have ring settings (30), core flipping, and any core can go in any wheel in 60 orientations
+
+Too many degrees of freedom. The separate ring setting seems superfluous. I.e. it seems possible to
+keep the wiring AND the advance-blocking set stationary, and only move the outer alphabet ring.
+That will change the indicator settings without actually changing the enciphering in any way.
+
+Every wheel control the second-next wheel via advance-blocking pins
+Tables gives the locations of advance-blocking pins. Note that when the rotor is in position 1 (A),
+the mechanism actually probes for a pin in position 18. So there is a shift of +17 mod 30 here.
+The 17-shift apply to even wheels only (2,4,6,8,10)
+The odd wheels (1,3,5,7,9) instead have a 20-shift!
+
+the fialka always moves all wheels that aren't blocked by some blocking pin. A pin on a
+even wheel block ALL higher-numbered even wheels - not merely the next one. A pin on an odd wheel
+block all lower-numbered odd wheels.
+
+(Design weakness: if wheel 1 rolls, then we know that 3,5,7,9 necessarily moves synchronously with it.
+ Similiar for the even wheels.
+ A better machine would let arbitrary wheels move or stand still - even harder to crack)
+
+
+Problem: order of operations. A key is pressed. then what? coding+rotation, or rotation+coding? (like enigma).
+For now, assume enigma-like operation. Compatibility testing is necessary
+
+
+Several wheel sets, for various countries. The UKW is common.
+
+cyrillic mode, latin mode and a special numeric-only mode.
+
+Fixed non-identity mapping from keyboard to card reader
+Fixed non-identity mapping (etw) from card reader to scrambler
+A card reader instead of steckerbrett
+
+The ukw/reflector is special. One pin do not reflect, but signals "encipher this letter as itself".
+three other pins form a 3-way non-reciprocal swap. The rest of the reflector is normal.
+
+

@@ -1,0 +1,67 @@
+#Enigma I, as used by wehrmacht/luftwaffe
+
+ciphermachine "Enigma I"
+
+alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#5 slots:
+#1:     The nonrotating reflector
+#2,3,4: The 3 ordinary wheel slots
+#5:     The plugboard
+wheelslots 5
+stepping notches
+
+#The plugboard. No wheel rotation, but user-rewireable
+slot 5
+	nonrotating
+	plugboard
+
+#The fast slot, its wheel turns on every keypress:
+slot 4 
+	fast
+	notch push 3	
+
+#A slot that pushes its own wheel too, gets the well-known enigma double-stepping:
+slot 3
+	notch push 2 3
+
+slot 1 
+	nonrotating
+
+for slots 2 - 4
+
+wheel V
+	wiring "VZBRGITYUPSDNHLXAWMJQOFECK"
+	notch "Z"
+
+wheel IV
+	wiring "ESOVPZJAYQUIRHXLNFTGKDCMWB"
+	notch "J"
+
+wheel III
+	wiring "BDFHJLCPRTXVZNYEIWGAKMUSQO"
+	notch "V"
+
+wheel II
+	wiring "AJDKSIRUXBLHWTMCQGZNPYFVOE"
+	notch "E"
+
+wheel I 
+	wiring "EKMFLGDQVZNTOWYHXUSPAIBRCJ"
+	notch "Q"
+
+for slot 1
+
+#Used a little
+reflector UKW-C
+	wiring "FVPJIAOYEDRZXWGCTKUQSBNMHL"
+
+#Used for most of WWII
+reflector UKW-B
+	wiring "YRUHQSLDPXNGOKMIEBFZCWVJAT"
+
+#Only used before WWII
+reflector UKW-A
+	wiring "EJMZALYXVBWFCRQUONTSPIKHGD"
+
+

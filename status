@@ -1,0 +1,31 @@
+ENIGMA
+Support for German enigma machines seems complete, except from the uhr attachment.
+3- and 4-wheel machines have been tested, and correctly decrypts historic WWII messages.
+Some historic enigma machines show 00-26 on the rings instead of letters. This is 
+currently unsupported.
+
+
+FIALKA
+* czech code wheels with cyrillic symbols implemented
+  - lacks the other code wheels
+  - don't support alternate alphabets (latin, numbers)
+  - proton2 not implemented, so no core swapping etc.
+  - no numeric mode
+* untested, don't know if it encrypts correctly
+  - don't know if wheels are supposed to move before or
+    after the pressed key is encrypted
+  - decrypts its own messages correctly
+  - wheels move as documented, as far as I can tell
+* Bug when trying to change the card reader setting
+* Card reader should not be called plugboard
+
+FURTHER WORK
+* Noninteractive mode, for encrypting/decrypting whole files.
+* Better display, the fialka uses too many lines (10 lines for 10 wheels)
+* Show notches/blocking pins on the wheel display
+* Show ringstellung as a dot on the code wheel, as in real life.
+* A third window with help text
+* Mouse support. Exists in curses, so possible.
+
+
+

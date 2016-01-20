@@ -1,0 +1,25 @@
+http://www.codesandciphers.org.uk/enigma/example1.htm
+
+
+ Example
+
+This a ciphered text:
+
+215 AAA FRA "ABIRUXKP" PCDAONONEBCJBOGLYMEEYGSHRYUBUJHMJOQZLEX
+
+The first line is the setup.
+
+215 rotor order (Walzenlage) means left wheel number 2, middle wheel number one and right wheel number 5.
+
+AAA is the corresponding ring setting (Ringstellung).
+
+FRA is the corresponding starting position (Grundstellung).
+
+AB IR UX KP Plugboard connections (Steckerverbindungen).
+
+And this is the enciphered plain text.
+
+ANBULMEGRAZGOESTINGSTRENGGEHEIMEMELDUNG 
+
+Other examples:
+http://wiki.franklinheath.co.uk/index.php/Enigma/Sample_Messages

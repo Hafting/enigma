@@ -1,0 +1,33 @@
+enigma, a simulator for various rotor-based encryption machines
+
+Goals:
+* Emulate various real machines, such as the German enigma and  
+  the Russian fialka. The program reads a machine description,
+  and is then able to decode messages from such machines, as well as
+  encode answers.
+  The various enigma simulations have been tested on real WWII messages
+  The fialka simulation has not been tested, but it decrypts its own messages
+
+* Emulate simpler devices, such as the paper code wheels kids play with
+* Be able to try out new rotor designs for research
+
+The source, the machine description files (and this text) is encoded in utf-8, 
+not ascii. This is useful so the program will work with non-ascii scripts
+such as the cyrillic used by the fialka machine. 
+
+Make sure you have a terminal emulator that understands utf-8, as well as
+a font with all the symbols you need. 
+
+The program will use color if available, or use ugly fallbacks. The program
+uses several grays and red. If you get hideous a blue display, then you
+got one of the fallbacks. Switch to a terminal emulator that lets curses
+redefine colors. urxvt is fine, bot for color support and unicode. 
+xterm supports unicode, but color support is bad.
+
+Machine descriptions can use strings delimited by "double quotes",
+'single quotes' or «guillemets». The latter may be useful for designing a
+machine that has both the ascii quotes in its working alphabet.
+
+It is assumed that a wchar_t can hold any character one might whish to encode.
+This assumption holds on linux. Input is assumed to be utf-8, and will in
+some cases be converted to wide strings internally. 
