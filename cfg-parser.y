@@ -72,24 +72,6 @@ void set_wheelslots(machine *m, int slots) {
 /* Store temporary slot into machine description */
 void set_slot(machine *m, int slotnr) {
 	if (slotnr && slotnr <= m->wheelslots) {
-		if (tmpslot.type != T_WHEEL) { /* rewirable slot/plugboard gets its own special "wheel" */
-			tmpslot.w = malloc(sizeof(wheel));
-			tmpslot.w->name = tmpslot.step == 0 ? L"plugboard" : L"rewirable";
-			tmpslot.w->reflector = false;
-			tmpslot.w->next_in_set = tmpslot.w; /* single-item circular list */
-			/* if this is a rotating slot with notches actions, give the wheel a single notch.
-         The notch is always at the first position, use ringstellung to change that */
-			if (tmpslot.step && tmpslot.affect_slots) {
-				tmpslot.w->notch = calloc(m->alphabet_len, sizeof(bool));
-				tmpslot.w->notch[0] = true; /* this default notch goes in the first position */
-			} else {
-				tmpslot.w->notch = NULL;
-			}
-			/* Set up an identity mapping, until the user rewires/replugs this item */
-			tmpslot.w->encode = malloc(sizeof(int) * m->alphabet_len);
-			tmpslot.w->decode = malloc(sizeof(int) * m->alphabet_len);
-			identity_map(m, tmpslot.w);
-		}
 		memcpy(&m->slot[slotnr-1], &tmpslot, sizeof(wheelslot));
 	} else yyerror(m, "invalid slot number '%i', this machine has slots 1-%i\n", slotnr, m->wheelslots);
 	zero_slot(&tmpslot);
@@ -156,8 +138,8 @@ void name_wheel(machine *m, wchar_t *name, bool reflector) {
 	w = m->wheel_list;
 	w->name = name;
 	w->reflector = reflector;
-	int slen = wcslen(name);
-	if (slen > m->longest_wheelname) m->longest_wheelname = slen;
+	w->name_len = wcslen(name);
+	if (w->name_len > m->longest_wheelname) m->longest_wheelname = w->name_len;
 	int arrsiz = sizeof(bool) * m->wheelslots;
 	w->allow_slot = malloc(arrsiz);
 	memcpy(w->allow_slot, tmp_slotlimit, arrsiz);
@@ -350,7 +332,7 @@ void read_pin_offset(machine *m, int off) {
 %token <i> INTEGER
 %token <ws> WSTRING
 %token <ws> NAME
-%token ALPHABET MACHINE WHEELSLOTS WHEEL WIRING SLOT SLOTS FAST REVERSE REWIRABLE PLUGBOARD REFLECTOR NONROTATING NOTCHES PUSH FOR PINS OFFSET BLOCKS STEPPING ENCIPHER DECIPHER
+%token ALPHABET MACHINE WHEELSLOTS WHEEL WIRING SLOT SLOTS FAST REVERSE REWIRABLE PLUGBOARD REFLECTOR NONROTATING NOTCHES PUSH FOR PINS OFFSET BLOCKS STEPPING ENCIPHER DECIPHER MAPPING
 
 %%
 /*
@@ -362,7 +344,7 @@ void read_pin_offset(machine *m, int off) {
 */
 
 machine:     
-	MACHINE WSTRING machine_details slot_setup wheelset {
+	MACHINE WSTRING machine_details opt_slot_setup wheelset {
 		m->name = $2;
 	}
 	;
@@ -373,29 +355,18 @@ machine_details:
 	;
 
 machine_detail:
-	machine_alphabet
-	| machine_wheelslots
-	| STEPPING NOTCHES { m->steptype = T_NOTCH_ENABLING; } 
-	| STEPPING PINS    { m->steptype = T_PIN_BLOCKING; }
+	ALPHABET WSTRING { read_alphabet(m,  $2); }      /* io-alphabet for this machine */
+	| WHEELSLOTS INTEGER { set_wheelslots(m, $2); }  /* # of wheel slots */
+	| STEPPING NOTCHES { m->steptype = T_NOTCH_ENABLING; } /* notch-based stepping */
+	| STEPPING PINS    { m->steptype = T_PIN_BLOCKING; }   /* stepping with blocking pins */
 	;
 
-/* The input-output alphabet for this machine */
-machine_alphabet: 
-	ALPHABET WSTRING { 
-			read_alphabet(m,  $2);			
-	}
-	;
 
-/* The number of wheelslots, defaults to 0 */
-machine_wheelslots:
-	WHEELSLOTS INTEGER { set_wheelslots(m, $2); }
-	;
 
 /*  Setup of wheel slots 
 		slot 1 is the leftmost slot, first in the wheel order.
 		If the machine uses a reflector, it goes in slot 1.
 		
-
 	  Input goes into the highest numbered slot first. This is where an
     enigma machine has its fast wheel.
     Default for a slot: no automatic movement, 
@@ -407,19 +378,32 @@ machine_wheelslots:
                      fialka crossbar mapping
                      steckerboard mapping
                      fixed reflectors
+
 		- notch push slotnumber(s) - what wheel(s) to move when a notch comes up.
-		
-		- more may be needed to simulate a Russian fialka.
+		- pin block slotnumber(s) - what wheel(s) to block on advance-blocking pins		
 */
 
-slot_setup:  /* empty */
+/* Having a slot setup is optional: */
+opt_slot_setup:
+	%empty
+	| slot_setup
+	;
+
+/* Slot setup may be a list */
+slot_setup:  
+	slot
 	| slot_setup slot 
 	;
 
+/* Setup for one particular slot */
 slot:
 	SLOT INTEGER slot_details { set_slot(m, $2); }
+	| SLOT INTEGER 
+	;
 
-slot_details: /* empty */
+/* one or more details */
+slot_details: 
+	slot_detail
 	| slot_details slot_detail
 	;
 
@@ -435,9 +419,12 @@ slot_detail:
 	| NOTCHES OFFSET INTEGER { read_pin_offset(m, $3); }
 	;
 
-integers: /* one or more positive integers (or integer ranges) */
-	int_or_range
-	| integers int_or_range
+/* one or more positive integers (or integer ranges) 
+   used in several places that needs lists of integers
+   the numbers are collected into temp_int[tmp_ints]
+*/
+integers:	int_or_range
+	| integers int_or_range 
 	;
 
 int_or_range:
@@ -468,13 +455,15 @@ restriction:
 
 
 /* One code wheel */
-wheel:
+wheel: 
 	WHEEL NAME wheel_spec 			{	name_wheel(m, $2, false); }
 	| REFLECTOR NAME wheel_spec	{ name_wheel(m, $2, true); }
+	| MAPPING NAME wheel_spec   { name_wheel(m, $2, false); } 
 	;
 
 wheel_spec: 
-	wiring stepping 
+	wiring stepping
+	| wiring 
 	;
 
 /* Connectors & wiring for a wheel */
@@ -486,9 +475,9 @@ wiring:
 	;
 
 /* wheel specific stepping features, such as 
-   notches (done) or advance-blocking pins (not done yet!!!)*/
-stepping: /* empty */
-	| NOTCHES WSTRING { wheel_notches(m, $2); }
+   notches or advance-blocking pins */
+stepping: 
+	NOTCHES WSTRING { wheel_notches(m, $2); }
 	| NOTCHES integers {wheel_notches_ints(m); }
 	| PINS WSTRING { wheel_notches(m, $2); }
 	| PINS integers { wheel_notches_ints(m); }

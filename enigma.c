@@ -1,10 +1,11 @@
 /*
 	enigma.c
 	Enigma, generic open-source simulator for rotor-based encryption machines,
-	such as the WWII enigma machines. 
+	such as the WWII enigma machines, or the Russian fialka 
 
-	Can also do simpler stuff, i.e. the cæsar chiper is a rotor machine 
-	with a single non-moving rotor.
+	Can also do simpler stuff: 
+		cæsar cipher:    a rotor machine with a single non-moving rotor/plugboard
+		vigenere cipher: a rotor machine with a single fast rotor
 
 	© 2015 Helge Hafting, licenced under the GPL
 */
@@ -30,7 +31,7 @@ extern FILE *yyin;
 
 /* Give error message and abort immediately */
 void feil(char *m) {
-	printf("%s", m);
+	wprintf(L"%s", m);
 	exit(1);
 }
 
@@ -183,14 +184,27 @@ void curses_bug_workaround() {
 void draw_wheel_rot(machine *m, ui_info *ui, int slotnum) {
 	wheelslot *sl = &m->slot[slotnum];
 	int x = slotnum*4 + 2;
+	/* The center column with numbers */
 	wattrset(ui->w_wheels, ui->attr_wheel_plain);
-	int y0 = m->wheelslots + 5;
+	int y0 = (ui->layout == 0) ? m->wheelslots + 5 : m->longest_wheelname + 5;
 	for (int i = 1; i <=2; ++i) {
 		mvwprintw(ui->w_wheels, y0-i, x, "%lc", m->alphabet[(sl->rot+i) % m->alphabet_len]);
 		mvwprintw(ui->w_wheels, y0+i, x, "%lc", m->alphabet[(m->alphabet_len+sl->rot-i) % m->alphabet_len]);
 	}
+	/* The one number showing the current setting */
 	wattrset(ui->w_wheels, ui->attr_wheel_activ);
 	mvwprintw(ui->w_wheels, y0, x, "%lc", m->alphabet[sl->rot]);
+	/* Wheel sides. Possibly selected. Notch/block-pins, ring setting mark */
+	wattrset(ui->w_wheels, slotnum == ui->chosen_wheel ? ui->attr_wheelside_activ : ui->attr_wheelside_plain);
+	int al = m->alphabet_len;
+	if (sl->w->notch) for (int i = -2; i <= 2; ++i) {
+		/* Normal wheel side, or notch mark */
+		wchar_t l = sl->w->notch[(sl->rot-i+al) % al] ? L'-' : L' '; 
+		/* Normal wheel side, or ring setting mark */
+		wchar_t r = sl->ringstellung == (sl->rot - i + al) % al ? L'*' : L' '; 
+		mvwprintw(ui->w_wheels, y0 + i, x-1, "%lc", l);
+		mvwprintw(ui->w_wheels, y0 + i, x+1, "%lc", r);
+	}
 }
 
 /* Check if any wheels reached a notch position, set 'movement' for indicated slot(s) 
@@ -295,26 +309,34 @@ wchar_t decipher(machine *m, wchar_t c, ui_info *ui) {
 void draw_wheel(machine *m, ui_info *ui, int i) {
 	bool highlight = ui->chosen_wheel == i;
 	wattrset(ui->w_wheels, ui->attr_wheel_activ);
-	mvwprintw(ui->w_wheels, m->wheelslots + 5, i*4, "     ");
+	int base_y = (ui->layout == 0) ? m->wheelslots : m->longest_wheelname;
+	mvwprintw(ui->w_wheels, base_y + 5, i*4, "     ");
 	if (!highlight) wattrset(ui->w_wheels, ui->attr_wheel_plain);
 	/* Wheel background, inactive parts */
-	for (int j = 2; j <= 6; ++j) mvwprintw(ui->w_wheels, m->wheelslots + j + 1, i*4+1, "   ");
+	for (int j = 2; j <= 6; ++j) mvwprintw(ui->w_wheels, base_y + j + 1, i*4+1, "   ");
   if (m->slot[i].step) {
 		/* Wheel turning knobs */
 		wattrset(ui->w_wheels, highlight ? ui->attr_btnh : ui->attr_btn );
-		mvwprintw(ui->w_wheels, m->wheelslots + 8, i*4+1, " v ");
-		mvwprintw(ui->w_wheels, m->wheelslots + 2, i*4+1, " ^ ");
+		mvwprintw(ui->w_wheels, base_y + 8, i*4+1, " v ");
+		mvwprintw(ui->w_wheels, base_y + 2, i*4+1, " ^ ");
 		/* Wheel text */
 		draw_wheel_rot(m, ui, i);
 		/* Ring settings */
 		wattrset(ui->w_wheels, highlight ? ui->attr_lblh : ui->attr_lbl);
-		mvwprintw(ui->w_wheels, m->wheelslots + 9, i*4+1, " %lc ", m->alphabet[m->slot[i].ringstellung]);
+		mvwprintw(ui->w_wheels, base_y + 9, i*4+1, " %lc ", m->alphabet[m->slot[i].ringstellung]);
 	}
-  /* Wheel name */
+  /* Wheel name */ 
 	wattrset(ui->w_wheels, highlight ? ui->attr_lblh : ui->attr_lbl);
-	mvwprintw(ui->w_wheels, i+1, i*3+m->wheelslots+3, "%*ls", -m->longest_wheelname, m->slot[i].w->name);
-	for (int j = 1; j < 1+m->wheelslots-i; ++j) mvwprintw(ui->w_wheels, i+j+1, 3+i*3+m->wheelslots-j, "%c", '/');
+  if (ui->layout == 0) {
+		mvwprintw(ui->w_wheels, i+1, i*3+m->wheelslots+3, "%*ls", -m->longest_wheelname, m->slot[i].w->name);
+		for (int j = 1; j < 1+m->wheelslots-i; ++j) mvwprintw(ui->w_wheels, i+j+1, 3+i*3+m->wheelslots-j, "%c", '/');
+	} else {
 
+		int nlen = m->slot[i].w->name_len;
+		for (int j = 0; j < nlen; ++j) mvwprintw(ui->w_wheels, 1+j+m->longest_wheelname-nlen, 2+i*4, "%lc", m->slot[i].w->name[j]);	
+		mvwprintw(ui->w_wheels, m->longest_wheelname+1, 2+i*4, "|");
+
+	}
 }
 
 /* Draw the set of wheels (entire window) */
@@ -375,7 +397,7 @@ void ringstellung(machine *m, ui_info *ui, int step) {
 }
 
 
-/* change the highlighted code wheel */
+/* change the highlighted code wheel (or plugboard) */
 void next_wheel(machine *m, ui_info *ui) {
 	if (ui->chosen_wheel < 0) return;
 	wheelslot *sl = &m->slot[ui->chosen_wheel];
@@ -419,7 +441,7 @@ void next_wheel(machine *m, ui_info *ui) {
 					}
 				} while (*l1);
 			} else {
-				wprintw(ui->w_pop, "Type the new mapping like XYZABCDE...\nor just enter for the identity mapping\n");
+				wprintw(ui->w_pop, "%sType the new mapping like XYZABCDE...\nor just enter for the identity mapping\n", err);
 				mvwgetn_wstr(ui->w_pop, 2, 0, s, m->alphabet_len);
 				identity_map(m, sl->w);
 				done = true; /* Unless we get a bad string */
@@ -442,7 +464,7 @@ void next_wheel(machine *m, ui_info *ui) {
 					if (*l) {
 						err = "Too many characters. ";
 						done = false;
-					} else if (i < m->alphabet_len) {
+					} else if (i && i < m->alphabet_len) {
 						err = "Too few characters. ";
 						done = false;
 					}
@@ -482,6 +504,8 @@ void interactive(machine *m) {
 			init_pair(CP_CODED, CLR_BRIGHTRED, COLOR_BLACK);
 			init_pair(CP_BTN, COLOR_RED, CLR_DARKESTGRAY);
 			init_pair(CP_BTNH, COLOR_RED, CLR_DARKGRAY);	
+			init_pair(CP_WHEELSIDE_PLAIN, COLOR_BLACK, CLR_DARKESTGRAY);
+			init_pair(CP_WHEELSIDE_ACTIV, COLOR_BLACK, CLR_DARKGRAY);
 		} else {
 			/* Second best, 8 color ncurses */
 			init_pair(CP_WHEEL_PLAIN, COLOR_YELLOW, COLOR_BLUE);
@@ -490,6 +514,8 @@ void interactive(machine *m) {
 			init_pair(CP_CODED, COLOR_RED, COLOR_BLACK);
 			init_pair(CP_BTN, COLOR_RED, COLOR_BLUE);
 			init_pair(CP_BTNH, COLOR_BLUE, COLOR_RED);
+			init_pair(CP_WHEELSIDE_PLAIN, COLOR_BLACK, COLOR_BLUE);
+			init_pair(CP_WHEELSIDE_ACTIV, COLOR_BLACK, COLOR_RED);
 		}
 		ui.attr_plain = COLOR_PAIR(CP_PLAIN);
 		ui.attr_coded = COLOR_PAIR(CP_CODED);
@@ -497,6 +523,8 @@ void interactive(machine *m) {
 		ui.attr_wheel_activ = COLOR_PAIR(CP_WHEEL_ACTIV) | A_BOLD;
 		ui.attr_btn = COLOR_PAIR(CP_BTN);
 		ui.attr_btnh = COLOR_PAIR(CP_BTNH);
+		ui.attr_wheelside_plain = COLOR_PAIR(CP_WHEELSIDE_PLAIN);
+		ui.attr_wheelside_activ = COLOR_PAIR(CP_WHEELSIDE_ACTIV);
 	} else {
 		/* No color fallback */
 		ui.attr_plain = A_NORMAL;
@@ -505,15 +533,36 @@ void interactive(machine *m) {
 		ui.attr_wheel_activ = A_REVERSE | A_BOLD | A_UNDERLINE;
 		ui.attr_btn = A_REVERSE | A_BOLD;
 		ui.attr_btnh = ui.attr_btn;
+		ui.attr_wheelside_plain = ui.attr_wheel_plain;
+		ui.attr_wheelside_activ = ui.attr_wheel_activ;
 	}
 	ui.attr_lbl = A_NORMAL;
 	ui.attr_lblh = A_BOLD;
 	ui.chosen_wheel = -1;
 
-	/* Make the windows */
-	int topheight = 10 + m->wheelslots;
+	/* Make the windows.
+     Two ways to print slot headings, select the lowest height:
+		 way0: (height depends on the number of slots)
+
+        UKW-B
+       /   VII
+      /   /   VI
+     /   /   /   steckerbrett
+    /   /   /   /
+
+   way1: (height depends on the longest wheelname)
+ 
+    U       V   E
+    K       I   T
+    W   V   I   W
+    |   |   |   |
+   */
+	int topheight0 = 10 + m->wheelslots;
+	int topheight1 = 10 + m->longest_wheelname;
+	ui.layout = topheight0 < topheight1 ? 0 : 1;
+	int topheight = ui.layout == 0 ? topheight0 : topheight1;
 	int longestname = strlen("ring settings");
-	if (longestname < m->longest_wheelname) longestname = m->longest_wheelname;
+	if (ui.layout == 0 && longestname < m->longest_wheelname) longestname = m->longest_wheelname;
 	int topwidth = 4 * m->wheelslots + 1 + longestname;
 	int namelen = wcslen(m->name);
 	if (namelen > topwidth) topwidth = namelen;
@@ -705,18 +754,74 @@ void interactive(machine *m) {
 }
 
 
+/* Print Vigènere tables for the code wheels */
+/* 
+     Wheel "III"
+     input code      input decode     
+     ABCDE           ABCDE
+w  A               A
+h  B               B
+e  C               C
+e  D               D
+l  E               E
+
+k
+e
+y
+ */
+void print_tables(machine *m) {
+	wchar_t *vertical_header = L"Wheel key";
+	int vlen = wcslen(vertical_header);
+	int al = m->alphabet_len;
+	wheel *firstwheel = m->wheel_list;
+	wheel *w = firstwheel;
+	wprintf(L"Vigènere tables for the wheels of machine \"%ls\"\n\n", m->name);
+
+	do {
+		bool rotatable = false;
+
+		//Is 'rotation' meaningful for this 'wheel'?
+		for (int i = 0; i < m->wheelslots && !rotatable; ++i) rotatable = w->allow_slot[i] && (m->slot[i].type == T_WHEEL);
+		
+		if (rotatable) {
+			/* Heading */
+			wprintf(L"     %s \"%ls\" \n", w->reflector ? "Reflector" : "Wheel", w->name);
+			wprintf(L"     %-35s     %-35s\n", "Input code", "Input decode");
+			wprintf(L"     %-35.*ls     %-35.*ls\n", m->alphabet_len, m->alphabet, m->alphabet_len, m->alphabet);
+			/* Vigènere square. Loop through all orientations for this wheel */
+			for (int j = 0; j < m->alphabet_len; ++j) {
+				/* Enchipher the entire alphabet similiar to the enchiper() function, 
+					 but using only this single wheel. (Ringstellung does not apply)*/ 
+				wprintf(L"%c  %lc ", (j >= vlen) ? ' ' : vertical_header[j], m->alphabet[j]);
+				for (int k=0; k < m->alphabet_len; ++k) wprintf(L"%lc", m->alphabet[(w->encode[(k+j) % al]+al-j)% al]);
+				wprintf(L"%*s   %lc ", 35-m->alphabet_len, "", m->alphabet[j]);
+				for (int k=0; k < m->alphabet_len; ++k) wprintf(L"%lc", m->alphabet[(w->decode[(k+j) % al]+al-j) % al]);
+				wprintf(L"\n"); 
+			}
+		}
+
+		wprintf(L"\n");
+		//Next wheel...
+		w = w->next_in_set;
+	} while (w != firstwheel);
+}
+
+
 int main(int argc, char *argv[]) {
 	/* setlocale(), so mbtowc() etc will work. 
      We may want to encode/decode non-ascii stuff. 
      Spies works with many scripts . . . */
 	if (setlocale(LC_ALL, "") == NULL) feil("Bad locale, please configure your computer correctly. Install the locale package, and/or set the LANG environment variable.\n");
+	fwide(stdout,1);
 
-  if (argc < 2) feil("enigma machine-description\n");
+  bool print_wheel_tables = (argc == 3) && !strcmp(argv[2], "-t");
+
+  if ((argc < 2) || (argc > 3) || (argc == 3 && !print_wheel_tables )) feil("enigma machine-description [-t]\n -t prints wheel tables\n");
   machine *m=getdescr(argv[1]);
   if (!m) feil("Unuseable machine description\n");
-
   
-  interactive(m);
+  if (print_wheel_tables) print_tables(m); 
+  else interactive(m);
 }
 
 

@@ -76,6 +76,7 @@ SPC		[ \t]+
 "fast"					return FAST;
 "reverse"				return REVERSE;
 "reflector"			return REFLECTOR;
+"mapping"				return MAPPING;
 "nonrotating"		return NONROTATING;
 "notches"				return NOTCHES;
 "notch"					return NOTCHES;

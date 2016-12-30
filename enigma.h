@@ -14,6 +14,8 @@
 #define CP_CODED 23
 #define CP_BTN 24
 #define CP_BTNH 25
+#define CP_WHEELSIDE_PLAIN 26
+#define CP_WHEELSIDE_ACTIV 27
 
 #define CLR_WHITEGRAY   20
 #define CLR_DARKESTGRAY 21
@@ -29,6 +31,7 @@
 /* Description of a code wheel */
 typedef struct _wheel {
 	wchar_t *name;
+	int name_len;
 	bool reflector;
 	struct _wheel *next_in_set;
 
@@ -66,7 +69,7 @@ typedef struct {
 	int step;	/* steplength: 1=forw alfabeth_len-1=backw, 0=nonrotating (ETW,UKW,steckerbrett)  */
 	bool fast; /* is this a 'fast' slot?  (Rotates for every keypress) */
 	slot_type type; 
-	bool movement; /* scheduled to move on next keypress, due notched wheel */
+	bool movement; /* scheduled to move on next keypress, due to notched wheel */
 	int affect_slots; /* How many slot(s) to nudge when a notch happens, or block when a pin comes up */
 	int *affect_slot; /* Which slot(s) to nudge when a wheel notch comes up, or block when a pin comes up */
 
@@ -83,7 +86,7 @@ typedef struct {
 	bool broken_description;
 	const wchar_t *name;			/* Name of the machine*/
 	const wchar_t *alphabet;	/* Alphabet for (de)coding */
-	int alphabet_len;		
+	int alphabet_len;					// Alphabet length in unicode characters	
 	step_type steptype;				/* What type of stepping mechanism is used */
 	wheel *wheel_list;	      /* Set of wheels belonging to this machine */
   int wheelslots;			      /* Number of slots for wheels */
@@ -97,8 +100,11 @@ typedef struct {
 /* UI stuff */
 typedef struct {
 	int attr_plain, attr_coded; /* plain & enciphered text */
-	int attr_wheel_plain, attr_wheel_activ, attr_btn, attr_btnh; /* wheel parts */
+	int attr_wheel_plain, attr_wheel_activ; /* wheel parts */
+	int attr_wheelside_plain, attr_wheelside_activ; 
+	int attr_btn, attr_btnh; /* wheel parts */
 	int attr_lbl, attr_lblh; /* label text */
+	int layout; /* 0 or 1, how to print slot headings. see interactive() */
 	WINDOW *w_wheels;
 	WINDOW *w_code;
 	WINDOW *w_pop;

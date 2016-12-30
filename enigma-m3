@@ -30,6 +30,12 @@ slot 3
 slot 1 
 	nonrotating
 
+for slot 5
+mapping steckerbrett 
+	wiring 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+
+
+
 for slots 2 - 4
 
 wheel VIII
@@ -71,7 +77,7 @@ for slot 1
 reflector UKW-C
 	wiring "FVPJIAOYEDRZXWGCTKUQSBNMHL"
 
-#Used for most of the WWII
+#Used for most of the war
 reflector UKW-B
 	wiring "YRUHQSLDPXNGOKMIEBFZCWVJAT"
 
